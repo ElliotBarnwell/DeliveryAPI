@@ -1,0 +1,255 @@
+openapi: 3.0.1
+info:
+  title: Robot Delivery API
+  version: 0.0.1
+servers:
+- url: http://localhost:8080/
+tags:
+- name: Delivery
+  description: Everything about your Pets
+- name: Robot
+  description: Get Robot Availability
+paths:
+  /delivery:
+    get:
+      tags:
+      - Delivery
+      description: Returns All Deliveries
+      operationId: getDeliveries
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deliveries'
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-swagger-router-controller: Delivery
+    post:
+      tags:
+      - Delivery
+      description: request delivery
+      operationId: requestDelivery
+      requestBody:
+        description: the destination coordinates
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/delivery_body'
+        required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DestinationQuoteResponse'
+        "404":
+          description: Delivery Unvailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: deliveryCoordinates
+      x-swagger-router-controller: Delivery
+    x-swagger-router-controller: delivery
+  /delivery/{deliveryId}:
+    get:
+      tags:
+      - Delivery
+      description: Returns Delivery by ID
+      operationId: getdeliveryById
+      parameters:
+      - name: deliveryId
+        in: path
+        description: The ID of the delivery requested
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+        "404":
+          description: Delivery not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-swagger-router-controller: Delivery
+    put:
+      tags:
+      - Delivery
+      description: Customer accepts delivery
+      operationId: acceptDelivery
+      parameters:
+      - name: deliveryId
+        in: path
+        description: The ID of the delivery requested
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryAcceptedResponse'
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: Delivery not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: accepted
+      x-swagger-router-controller: Delivery
+  /robotAvailable:
+    get:
+      tags:
+      - Robot
+      description: Returns Robot availability
+      operationId: getRobotAvailibility
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RobotAvailableResponse'
+        "404":
+          description: Robot not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-swagger-router-controller: Robot
+    x-swagger-router-controller: robot
+components:
+  schemas:
+    Delivery:
+      type: object
+      properties:
+        deliveryId:
+          type: number
+        deliveryAccepted:
+          type: boolean
+        packageDelivered:
+          type: boolean
+        deliveryTime:
+          type: string
+        deliveryCoordinates:
+          $ref: '#/components/schemas/DeliveryCoordinates'
+      example:
+        deliveryId: 1
+        packageDelivered: true
+        deliveryTime: 2022-06-23T05:33:43.019Z
+        deliveryAccepted: true
+        deliveryCoordinates:
+          longSrc: 1.4658129805029452
+          latDest: 5.962133916683182
+          latSrc: 6.027456183070403
+          longDest: 5.637376656633329
+    Deliveries:
+      type: array
+      items:
+        $ref: '#/components/schemas/Delivery'
+    DeliveryCoordinates:
+      type: object
+      properties:
+        latSrc:
+          type: number
+        longSrc:
+          type: number
+        latDest:
+          type: number
+        longDest:
+          type: number
+      example:
+        longSrc: 1.4658129805029452
+        latDest: 5.962133916683182
+        latSrc: 6.027456183070403
+        longDest: 5.637376656633329
+    RobotAvailableResponse:
+      type: object
+      properties:
+        robotId:
+          type: number
+        available:
+          type: boolean
+      example:
+        available: true
+        robotId: 123
+    DestinationQuoteResponse:
+      type: object
+      properties:
+        delivery:
+          $ref: '#/components/schemas/Delivery'
+        quote:
+          type: number
+      example:
+        delivery:
+          deliveryId: 1
+          packageDelivered: true
+          deliveryTime: deliveryTime
+          deliveryAccepted: true
+          deliveryCoordinates:
+            longSrc: 1.4658129805029452
+            latDest: 5.962133916683182
+            latSrc: 6.027456183070403
+            longDest: 5.637376656633329
+        quote: 10.00
+    Error:
+      required:
+      - code
+      type: object
+      properties:
+        code:
+          type: string
+    delivery_body:
+      required:
+      - latDest
+      - latSrc
+      - longDest
+      - longSrc
+      type: object
+      properties:
+        latSrc:
+          type: number
+        longSrc:
+          type: number
+        latDest:
+          type: number
+        longDest:
+          type: number
+    DeliveryAcceptedResponse:
+      required:
+      - accepted
+      - deliveryId
+      type: object
+      properties:
+        deliveryId:
+          type: number
+        accepted:
+          type: boolean
+      example:
+        deliveryId: 1
+        accepted: true
